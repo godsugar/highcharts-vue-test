@@ -1,0 +1,107 @@
+<body>
+    <div id="app">
+        <input type="number" min="55" v-model.number="age">{{ age }}
+        <br>
+        <input type="number" min="1" max="1000000" v-model.number="currentPensionValue">{{ currentPensionValue }}
+        <br>
+        <input type="number" min="56" v-model.number="retireAge">{{ retireAge }}
+        <br>
+
+        <Chart :data="data" :steven="steven" :age-pot-value="agePotValue"></Chart>
+    </div>
+    <script src="https://code.highcharts.com/7.1.3/highcharts.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highcharts-vue@1.3.5/dist/highcharts-vue.min.js"></script>
+    <script>
+        Vue.use(HighchartsVue.default);
+
+        const Chart = Vue.component('Chart', {
+            props: ['data', 'steven', 'agePotValue'],
+            template: `
+	<div>
+		<p>{{ data }}</p>
+	
+		<h1>{{ steven }}</h1>
+		<h1>{{ agePotValue }}</h1>
+		<div id="thechart"></div>
+	</div>
+	`,
+            data() {
+                return {
+                    chart: undefined
+                }
+            },
+            methods: {
+                redraw() {
+                    this.chart.series[0].setData(this.agePotValue, true);
+                }
+            },
+            watch: {
+                data() { this.redraw() },
+                steven() { this.redraw() },
+                agePotValue() { this.redraw() },
+            },
+            mounted() {
+                var highchartsOptions = {
+                    chart: {
+                        type: 'area',
+                        renderTo: 'thechart'
+                    },
+                    credits: {
+                        enabled: false
+                    },
+                    tooltip: {
+                        enabled: false
+                    },
+                    title: {
+                        text: ''
+                    },
+                    xAxis: {
+                        allowDecimals: false,
+                        title: {
+                            text: 'Age'
+                        }
+                    },
+                    yAxis: {
+                        title: {
+                            text: 'Pot Value'
+                        },
+                        labels: {
+                            formatter: function () {
+                                return '£' + this.value / 1000 + 'k';
+                            }
+                        },
+                        opposite: true,
+                    },
+                    plotOptions: {},
+                    series: [{
+                        name: '',
+                        data: this.agePotValue
+                    }],
+                    credits: false
+                }
+                this.chart = new Highcharts.chart(highchartsOptions)
+            }
+        });
+
+        new Vue({
+            el: '#app',
+            data: {
+                age: 55,
+                currentPensionValue: 22000,
+                retireAge: 87
+            },
+            computed: {
+                data() { return (this.currentPensionValue) / (this.retireAge - this.age) },
+                steven() { return this.data * 1.4 },
+                agePotValue() {
+                    var vm = this;
+                    var agePotValue = [[vm.age, (vm.data)], [vm.retireAge, vm.currentPensionValue]];
+
+                    return agePotValue;
+                }
+            },
+            components: { Chart }
+        })
+    </script>
+</body>
